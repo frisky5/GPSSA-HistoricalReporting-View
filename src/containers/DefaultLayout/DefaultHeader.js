@@ -4,8 +4,8 @@ import { Badge, UncontrolledDropdown, DropdownItem, DropdownMenu, DropdownToggle
 import PropTypes from 'prop-types';
 
 import { AppAsideToggler, AppNavbarBrand, AppSidebarToggler } from '@coreui/react';
-import logo from '../../assets/img/brand/logo.svg'
-import sygnet from '../../assets/img/brand/sygnet.svg'
+import logo from '../../assets/img/brand/longLogo.svg'
+import sygnet from '../../assets/img/brand/gpssa.svg'
 
 const propTypes = {
   children: PropTypes.node,
@@ -21,10 +21,10 @@ class DefaultHeader extends Component {
 
     return (
       <React.Fragment>
-        <AppSidebarToggler className="d-lg-none" display="md" mobile />
+        <AppSidebarToggler className="d-none" display="md" mobile />
         <AppNavbarBrand
-          full={{ src: logo, width: 89, height: 25, alt: 'CoreUI Logo' }}
-          minimized={{ src: sygnet, width: 30, height: 30, alt: 'CoreUI Logo' }}
+          full={{ src: logo, width: 80, height: 52, alt: 'GPSSA' }}
+          minimized={{ src: sygnet, width: 45, height: 45, alt: 'GPSSA' }}
         />
         <AppSidebarToggler className="d-md-down-none" display="lg" />
 
@@ -33,23 +33,23 @@ class DefaultHeader extends Component {
             <NavLink to="/dashboard" className="nav-link" >Dashboard</NavLink>
           </NavItem>
           <NavItem className="px-3">
-            <Link to="/users" className="nav-link">Users</Link>
+            <Link to="/users" className="nav-link">Historical Reporting</Link>
           </NavItem>
-          <NavItem className="px-3">
+          <NavItem className="d-none">
             <NavLink to="#" className="nav-link">Settings</NavLink>
           </NavItem>
         </Nav>
         <Nav className="ml-auto" navbar>
-          <NavItem className="d-md-down-none">
+          <NavItem className="d-none">
             <NavLink to="#" className="nav-link"><i className="icon-bell"></i><Badge pill color="danger">5</Badge></NavLink>
           </NavItem>
-          <NavItem className="d-md-down-none">
+          <NavItem className="d-none">
             <NavLink to="#" className="nav-link"><i className="icon-list"></i></NavLink>
           </NavItem>
-          <NavItem className="d-md-down-none">
+          <NavItem className="d-none">
             <NavLink to="#" className="nav-link"><i className="icon-location-pin"></i></NavLink>
           </NavItem>
-          <UncontrolledDropdown nav direction="down">
+          <UncontrolledDropdown nav direction="down" className="d-none">
             <DropdownToggle nav>
               <img src={'../../assets/img/avatars/6.jpg'} className="img-avatar" alt="admin@bootstrapmaster.com" />
             </DropdownToggle>
@@ -70,7 +70,7 @@ class DefaultHeader extends Component {
             </DropdownMenu>
           </UncontrolledDropdown>
         </Nav>
-        <AppAsideToggler className="d-md-down-none" />
+        <AppAsideToggler className="d-none" />
         {/*<AppAsideToggler className="d-lg-none" mobile />*/}
       </React.Fragment>
     );
