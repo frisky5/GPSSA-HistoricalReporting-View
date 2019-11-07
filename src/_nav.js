@@ -21,8 +21,8 @@ export default {
       icon: "icon-book-open"
     },
     {
-      name: "Button dropdowns",
-      url: "/buttons/button-dropdowns",
+      name: "Call Detail Report",
+      url: "/historicalReporting/CallsDetailsReport",
       icon: "icon-book-open"
     },
     {
