@@ -16,7 +16,8 @@ import {
   Dropdown,
   DropdownItem,
   DropdownMenu,
-  DropdownToggle
+  DropdownToggle,
+  Row
 } from "reactstrap";
 import moment from "moment";
 import { DatetimePicker, DatetimePickerTrigger } from "rc-datetime-picker";
@@ -31,9 +32,10 @@ class CallsDetailsReportMain extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      dropdownOpen: false,
+      callTypeDropDownIsOpen: false,
+      finalDispositionDropDownIsOpen: false,
       callTypeDropDownValue: "Select Type...",
-      callDispositionValue: "Select Type...",
+      finalDispositionDropDownValue: "Select Type...",
       startDate: moment(),
       stopDate: moment(),
       collapse: false,
@@ -121,20 +123,33 @@ class CallsDetailsReportMain extends Component {
     this.toggle = this.toggle.bind(this);
     this.onStartDateChange = this.onStartDateChange.bind(this);
     this.onStopDateChange = this.onStopDateChange.bind(this);
-    this.toggleDropDown = this.toggleDropDown.bind(this);
     this.setCallTypeDropDownValue = this.setCallTypeDropDownValue.bind(this);
+    this.setFinalDispositionDropDownValue = this.setFinalDispositionDropDownValue.bind(
+      this
+    );
+    this.callTypeToggleDropDown = this.callTypeToggleDropDown.bind(this);
+    this.finalDispositionToggleDropDown = this.finalDispositionToggleDropDown.bind(
+      this
+    );
   }
 
-  toggleDropDown() {
-    this.setState({ dropdownOpen: !this.state.dropdownOpen });
+  callTypeToggleDropDown() {
+    this.setState({
+      callTypeDropDownIsOpen: !this.state.callTypeDropDownIsOpen
+    });
+  }
+  finalDispositionToggleDropDown() {
+    this.setState({
+      finalDispositionDropDownIsOpen: !this.state.finalDispositionDropDownIsOpen
+    });
   }
 
   setCallTypeDropDownValue = event => {
     this.setState({ callTypeDropDownValue: event.target.innerHTML });
   };
 
-  setCallDispositionDropDownValue = event => {
-    this.setState({ callTypeDropDownValue: event.target.innerHTML });
+  setFinalDispositionDropDownValue = event => {
+    this.setState({ finalDispositionDropDownValue: event.target.innerHTML });
   };
 
   goButtonContent() {
@@ -217,10 +232,10 @@ class CallsDetailsReportMain extends Component {
       <div className="animated fadeIn">
         <Col xs="12" sm="12" md="12" lg="12" xl="12">
           <Card className="animated fadeIn ">
-            <CardHeader>Please select Start & End Data/Time</CardHeader>
-            <CardBody className="animated fadeIn">
-              <FormGroup row>
-                <Col xs="12" sm="6" md="6" lg="3" xl="3">
+            <CardHeader>Please select required values</CardHeader>
+            <CardBody>
+              <Row>
+                <Col xs="12" sm="6" md="6" lg="4" xl="2">
                   <FormGroup>
                     <Label className="h6">Start: </Label>
                     <DatetimePickerTrigger
@@ -244,7 +259,7 @@ class CallsDetailsReportMain extends Component {
                   </FormGroup>
                 </Col>
 
-                <Col xs="12" sm="6" md="6" lg="3" xl="3">
+                <Col xs="12" sm="6" md="6" lg="4" xl="2">
                   <FormGroup>
                     <Label className="h6">End: </Label>
                     <DatetimePickerTrigger
@@ -266,43 +281,13 @@ class CallsDetailsReportMain extends Component {
                     </FormText>
                   </FormGroup>
                 </Col>
-                <Col xs="12" sm="6" md="6" lg="2" xl="2">
+                <Col xs="12" sm="6" md="6" lg="3" xl="2">
                   <FormGroup>
                     <Label className="h6">Call Type: </Label>
                     <Dropdown
-                      isOpen={this.state.dropdownOpen}
+                      isOpen={this.state.callTypeDropDownIsOpen}
                       toggle={() => {
-                        this.toggleDropDown();
-                      }}
-                    >
-                      <DropdownToggle caret>
-                        {this.state.callDispositionDropDownValue}
-                      </DropdownToggle>
-                      <DropdownMenu>
-                        <DropdownItem
-                          onClick={this.setCallDispositionDropDownValue}
-                        >
-                          Type 1
-                        </DropdownItem>
-                        <DropdownItem
-                          onClick={this.setCallDispositionDropDownValue}
-                        >
-                          Type 2
-                        </DropdownItem>
-                      </DropdownMenu>
-                    </Dropdown>
-                    <FormText className="help-block">
-                      Please select Call Disposition type
-                    </FormText>
-                  </FormGroup>
-                </Col>
-                <Col xs="12" sm="6" md="6" lg="2" xl="2">
-                  <FormGroup>
-                    <Label className="h6">Final Dispostion: </Label>
-                    <Dropdown
-                      isOpen={this.state.dropdownOpen}
-                      toggle={() => {
-                        this.toggleDropDown();
+                        this.callTypeToggleDropDown();
                       }}
                     >
                       <DropdownToggle caret>
@@ -318,14 +303,44 @@ class CallsDetailsReportMain extends Component {
                       </DropdownMenu>
                     </Dropdown>
                     <FormText className="help-block">
-                      Please select call desposition type
+                      Please select Call Type
                     </FormText>
                   </FormGroup>
                 </Col>
-                <Col xs="12" sm="2" md="3" lg="2" xl="2">
+                <Col xs="12" sm="6" md="6" lg="3" xl="2">
+                  <FormGroup>
+                    <Label className="h6">Final Dispostion: </Label>
+                    <Dropdown
+                      isOpen={this.state.finalDispositionDropDownIsOpen}
+                      toggle={() => {
+                        this.finalDispositionToggleDropDown();
+                      }}
+                    >
+                      <DropdownToggle caret>
+                        {this.state.finalDispositionDropDownValue}
+                      </DropdownToggle>
+                      <DropdownMenu>
+                        <DropdownItem
+                          onClick={this.setFinalDispositionDropDownValue}
+                        >
+                          Type 1
+                        </DropdownItem>
+                        <DropdownItem
+                          onClick={this.setFinalDispositionDropDownValue}
+                        >
+                          Type 2
+                        </DropdownItem>
+                      </DropdownMenu>
+                    </Dropdown>
+                    <FormText className="help-block">
+                      Please select Final Disposiotion type
+                    </FormText>
+                  </FormGroup>
+                </Col>
+                <Col xs="12" sm="2" md="3" lg="3" xl="2">
                   <FormGroup>{this.goButtonContent()}</FormGroup>
                 </Col>
-              </FormGroup>
+              </Row>
 
               <FormGroup>
                 <Collapse
