@@ -17,12 +17,22 @@ import {
   DropdownItem,
   DropdownMenu,
   DropdownToggle,
-  Row
+  Row,
+  Modal,
+  ModalBody,
+  ModalFooter,
+  ModalHeader
 } from "reactstrap";
+import { CSVLink, CSVDownload } from "react-csv";
 import moment from "moment";
-import { DatetimePicker, DatetimePickerTrigger } from "rc-datetime-picker";
+import momentDurationPlugin from "moment-duration-format";
+
+import { DatetimePickerTrigger } from "rc-datetime-picker";
 import "rc-datetime-picker/dist/picker.css";
 import BootstrapTable from "react-bootstrap-table-next";
+import "react-bootstrap-table-next/dist/react-bootstrap-table2.min.css";
+import MultiSelect from "react-multi-select-component";
+momentDurationPlugin(moment);
 const override = css`
   display: block;
   margin: 0 auto;
@@ -32,10 +42,20 @@ class CallsDetailsReportMain extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      callTypeDropDownIsOpen: false,
-      finalDispositionDropDownIsOpen: false,
-      callTypeDropDownValue: "Select Type...",
-      finalDispositionDropDownValue: "Select Type...",
+      modal: false,
+      modalMessage: "",
+      skills: [],
+      selectedSkills: [],
+      finalDisposition: [
+        { label: "Answered", value: "answered" },
+        { label: "Abandoned", value: "abandoned" }
+      ],
+      selectedFinalDisposition: [],
+      callType: [
+        { label: "IVR Call", value: "ivr" },
+        { label: "Normal Call", value: "call" }
+      ],
+      selectedCallType: [],
       startDate: moment(),
       stopDate: moment(),
       collapse: false,
@@ -43,151 +63,130 @@ class CallsDetailsReportMain extends Component {
       Entered: "Loaded...",
       Exiting: "Exiting...",
       Exited: "Exited...",
-      products: [
-        {
-          callID: 1,
-          callDateTime: "TV",
-          callerNumber: 1000,
-          numberOfRings: 5,
-          typeOfCallWorkCode: "Test Call",
-          finalDesposition: "Questionere",
-          waitingTimeBeofreDrop: 4
-        },
-        {
-          callID: 2,
-          callDateTime: "TV",
-          callerNumber: 1000,
-          numberOfRings: 5,
-          typeOfCallWorkCode: "Test Call",
-          finalDesposition: "Questionere",
-          waitingTimeBeofreDrop: 4
-        },
-        {
-          callID: 3,
-          callDateTime: "TV",
-          callerNumber: 1000,
-          numberOfRings: 5,
-          typeOfCallWorkCode: "Test Call",
-          finalDesposition: "Questionere",
-          waitingTimeBeofreDrop: 4
-        }
-      ],
+      records: [],
+      agents: [],
       columns: [
         {
-          dataField: "callID",
-          text: "Call ID",
-          headerAlign: "left",
-          align: "left",
-          headerTitle: true
+          dataField: "callid",
+          text: "Call ID"
         },
         {
-          dataField: "callDateTime",
-          text: "Call Date & Time",
-          sort: true,
-          headerAlign: "left",
-          align: "left"
+          dataField: "agentid",
+          text: "Agent"
         },
         {
-          dataField: "callerNumber",
-          text: "Caller Number",
-          headerAlign: "left",
-          align: "left"
+          dataField: "calldatetime",
+          text: "Timestamp"
         },
         {
-          dataField: "numberOfRings",
-          text: "#No of Rings until Answer",
-          headerAlign: "left",
-          align: "left"
+          dataField: "callingnumber",
+          text: "Caller No."
         },
         {
-          dataField: "typeOfCallWorkCode",
-          text: "Type of Call",
-          headerAlign: "left",
-          align: "left"
+          dataField: "ringtime",
+          text: "Ringtime"
         },
         {
-          dataField: "finalDesposition",
-          text: "Final Desposition",
-          headerAlign: "left",
-          align: "left"
+          dataField: "skillset",
+          text: "Skillset"
         },
-        ,
         {
-          dataField: "waitingTimeBeofreDrop",
-          text: "Waiting Time before Drop",
-          headerAlign: "left",
-          align: "left"
+          dataField: "finaldisposition",
+          text: "Disposition"
+        },
+        {
+          dataField: "queuetime",
+          text: "Queue Time"
         }
-      ]
+      ],
+      csvHeaders: [
+        { label: "Call ID", key: "callid" },
+        { label: "Agent", key: "agentid" },
+        { label: "Timestamp", key: "calldatetime" },
+        { label: "Caller Number", key: "callingnumber" },
+        { label: "Ringtime", key: "ringtime" },
+        { label: "Skillset", key: "skillset" },
+        { label: "Final Disposition", key: "finaldisposition" },
+        { label: "Queue Time", key: "queuetime" }
+      ],
+      exportAsCsvLink: "",
+      callTypeDropdownIsOpen: false,
+      callTypeDropdownValue: "Please Select"
     };
     this.toggle = this.toggle.bind(this);
+    this.toggleModal = this.toggleModal.bind(this);
     this.onStartDateChange = this.onStartDateChange.bind(this);
     this.onStopDateChange = this.onStopDateChange.bind(this);
-    this.setCallTypeDropDownValue = this.setCallTypeDropDownValue.bind(this);
-    this.setFinalDispositionDropDownValue = this.setFinalDispositionDropDownValue.bind(
+    this.onEntered = this.onEntered.bind(this);
+    this.onExited = this.onExited.bind(this);
+    this.onEntering = this.onEntering.bind(this);
+    this.onExiting = this.onExiting.bind(this);
+    this.onChangeSkillSelect = this.onChangeSkillSelect.bind(this);
+    this.onChangeFinalDispositionSelect = this.onChangeFinalDispositionSelect.bind(
       this
     );
-    this.callTypeToggleDropDown = this.callTypeToggleDropDown.bind(this);
-    this.finalDispositionToggleDropDown = this.finalDispositionToggleDropDown.bind(
-      this
-    );
+    this.onChangeCallTypeSelect = this.onChangeCallTypeSelect.bind(this);
+    this.setCallTypeDropdownValue = this.setCallTypeDropdownValue.bind(this);
+    this.callTypeToggleDropdown = this.callTypeToggleDropdown.bind(this);
   }
 
-  callTypeToggleDropDown() {
-    this.setState({
-      callTypeDropDownIsOpen: !this.state.callTypeDropDownIsOpen
+  componentDidMount() {
+    fetch("http://10.10.60.67/historicalreporting/getSkillsets", {
+      method: "GET",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+        "Access-Control-Allow-Origin": "*"
+      }
+    }).then(response => {
+      if (response.ok) {
+        response.json().then(json => {
+          var temp = [];
+          for (var looper = 0; looper < json.length; looper++) {
+            temp.push({
+              label: json[looper].skillset,
+              value: json[looper].skillset
+            });
+          }
+          this.setState({ skills: temp });
+        });
+      }
+    });
+
+    fetch("http://10.10.60.67/historicalreporting/getAgents", {
+      method: "GET",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+        "Access-Control-Allow-Origin": "*"
+      }
+    }).then(response => {
+      if (response.ok) {
+        response.json().then(json => {
+          this.setState({ agents: json });
+        });
+      }
     });
   }
-  finalDispositionToggleDropDown() {
+
+  callTypeToggleDropdown() {
     this.setState({
-      finalDispositionDropDownIsOpen: !this.state.finalDispositionDropDownIsOpen
+      callTypeDropdownIsOpen: !this.state.callTypeDropdownIsOpen
     });
   }
 
-  setCallTypeDropDownValue = event => {
-    this.setState({ callTypeDropDownValue: event.target.innerHTML });
-  };
-
-  setFinalDispositionDropDownValue = event => {
-    this.setState({ finalDispositionDropDownValue: event.target.innerHTML });
-  };
-
-  goButtonContent() {
-    if (this.state.collapse == true) {
-      return (
-        <div>
-          <Spacer height="28px" />
-          <Button
-            block
-            color="success"
-            className="btn-pill"
-            onClick={this.toggle}
-          >
-            <DotLoader
-              css={override}
-              sizeUnit={"px"}
-              size={20}
-              color={"#FFFFFF"}
-              loading={this.state.loading}
-            />
-          </Button>
-        </div>
-      );
-    } else {
-      return (
-        <div>
-          <Spacer height="28px" />
-          <Button
-            block
-            color="success"
-            className="btn-pill"
-            onClick={this.toggle}
-          >
-            Go!
-          </Button>
-        </div>
-      );
+  setCallTypeDropdownValue = event => {
+    if (event.target.innerHTML == "IVR Only") {
+      this.setState({ selectedFinalDisposition: [] });
+      this.setState({ selectedSkills: [] });
     }
+    this.setState({ callTypeDropdownValue: event.target.innerHTML });
+  };
+
+  toggleModal() {
+    this.setState({
+      modal: !this.state.modal
+    });
   }
 
   onStartDateChange = startDate => {
@@ -201,176 +200,289 @@ class CallsDetailsReportMain extends Component {
     });
   };
 
-  toggle() {
-    this.setState({
-      collapse: !this.state.collapse
+  getCallsDetailsReport() {
+    const tempstart = this.state.startDate.format("YYYY-MM-DD HH:mm:ss");
+    const tempstop = this.state.stopDate.format("YYYY-MM-DD HH:mm:ss");
+    var selectedCallType = [];
+    var selectedFinalDisposition = [];
+    var selectedSkills = [];
+    if (this.state.callTypeDropdownValue == "IVR Only") {
+      selectedCallType.push("ivr");
+      selectedSkills.push("NULL");
+      selectedFinalDisposition.push("NULL");
+    } else if (this.state.callTypeDropdownValue == "Normal Call") {
+      for (
+        var looper = 0;
+        looper < this.state.selectedSkills.length;
+        looper++
+      ) {
+        selectedSkills.push(this.state.selectedSkills[looper].value);
+      }
+      for (
+        var looper = 0;
+        looper < this.state.selectedFinalDisposition.length;
+        looper++
+      ) {
+        selectedFinalDisposition.push(
+          this.state.selectedFinalDisposition[looper].value
+        );
+      }
+      selectedCallType.push("call");
+    }
+
+    fetch("http://10.10.60.67/historicalreporting/callsDetailsReport", {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+        "Access-Control-Allow-Origin": "*"
+      },
+      body: JSON.stringify({
+        startDateTime: tempstart,
+        endDateTime: tempstop,
+        finalDisposition: selectedFinalDisposition,
+        skillset: selectedSkills,
+        calltype: selectedCallType
+      })
+    }).then(response => {
+      if (response.ok) {
+        response.json().then(json => {
+          for (var looper = 0; looper < json.length; looper++) {
+            json[looper].queuetime = moment
+              .duration(parseInt(json[looper].queuetime), "seconds")
+              .format("hh:mm:ss", { trim: false });
+            json[looper].ringtime = moment
+              .duration(parseInt(json[looper].ringtime), "seconds")
+              .format("hh:mm:ss", { trim: false });
+
+            for (
+              var innerLooper = 0;
+              innerLooper < this.state.agents.length;
+              innerLooper++
+            ) {
+              if (
+                json[looper].agentid == this.state.agents[innerLooper].agentId
+              ) {
+                json[looper].agentid = this.state.agents[innerLooper].agentName;
+              }
+            }
+          }
+          this.setState({ records: json });
+          this.setState({
+            exportAsCsvLink: (
+              <CSVLink
+                filename={
+                  "Calls Details Report " +
+                  this.state.startDate.format("YYYY-MM-DD") +
+                  " to " +
+                  this.state.stopDate.format("YYYY-MM-DD") +
+                  ".csv"
+                }
+                data={this.state.records}
+                headers={this.state.csvHeaders}
+              >
+                Download
+              </CSVLink>
+            )
+          });
+        });
+      }
     });
-    console.log(this.state.collapse);
   }
+  toggle() {
+    if (this.state.startDate.isAfter(this.state.stopDate)) {
+      this.setState({
+        modalMessage:
+          "Please Make sure that Start Time is not ahead of End Time!",
+        modal: !this.state.modal
+      });
+      return;
+    }
+    this.setState({ records: [] });
+    this.getCallsDetailsReport();
+    if (this.state.collapse == false)
+      this.setState({
+        collapse: !this.state.collapse
+      });
+  }
+
   onEntering() {}
   onEntered() {}
   onExiting() {}
   onExited() {}
-  expandRow = {
-    renderer: row => (
-      <div>
-        <BootstrapTable
-          striped={true}
-          bordered={false}
-          hover={true}
-          rowStyle={{ backgroundColor: "white" }}
-          keyField="id"
-          data={this.state.products}
-          columns={this.state.columns}
-          condensed={false}
-        />
-      </div>
-    )
-  };
+  onChangeSkillSelect(x) {
+    if (this.state.callTypeDropdownValue == "IVR Only") {
+      return;
+    }
+    this.setState({ selectedSkills: x });
+  }
+  onChangeFinalDispositionSelect(x) {
+    if (this.state.callTypeDropdownValue == "IVR Only") return;
+    this.setState({ selectedFinalDisposition: x });
+  }
+  onChangeCallTypeSelect(x) {
+    console.log(x);
+    if (x.length == 2) {
+      if (x[0].value == "ivr" || x[1].value == "ivr") {
+        console.log(x[0]);
+        x = [{ label: "IVR Call", value: "ivr" }];
+        this.setState({ selectedSkills: [] });
+        this.setState({ selectedFinalDisposition: [] });
+      }
+    } else if (x.length == 1) {
+      if (x[0].value == "ivr") {
+        console.log(x[0]);
+        x = [{ label: "IVR Call", value: "ivr" }];
+        this.setState({ selectedSkills: [] });
+        this.setState({ selectedFinalDisposition: [] });
+      }
+    }
+    this.setState({ selectedCallType: x });
+  }
   render() {
     return (
       <div className="animated fadeIn">
-        <Col xs="12" sm="12" md="12" lg="12" xl="12">
-          <Card className="animated fadeIn ">
-            <CardHeader>Please select required values</CardHeader>
-            <CardBody>
-              <Row>
-                <Col xs="12" sm="6" md="6" lg="4" xl="2">
-                  <FormGroup>
-                    <Label className="h6">Start: </Label>
-                    <DatetimePickerTrigger
-                      moment={this.state.startDate}
-                      onChange={this.onStartDateChange}
-                      className="danger"
-                    >
-                      <Input
-                        type="text"
-                        value={this.state.startDate.format(
-                          "DD/MM/YYYY  hh:mm A"
-                        )}
-                        size="10"
-                        placeholder="Normal"
-                        readOnly={true}
-                      />
-                    </DatetimePickerTrigger>
-                    <FormText className="help-block">
-                      Please select start date & time
-                    </FormText>
-                  </FormGroup>
-                </Col>
+        <Card>
+          <CardHeader>Please select required values</CardHeader>
+          <CardBody>
+            <FormGroup row>
+              <Col xs="12" sm="12" md="6" lg="4" xl="2">
+                <FormGroup>
+                  <Label className="h6">Start: </Label>
+                  <DatetimePickerTrigger
+                    moment={this.state.startDate}
+                    onChange={this.onStartDateChange}
+                  >
+                    <Input
+                      type="text"
+                      value={this.state.startDate.format("DD/MM/YYYY  hh:mm A")}
+                      size="10"
+                      placeholder="Normal"
+                      readOnly={true}
+                    />
+                  </DatetimePickerTrigger>
+                  <FormText className="help-block">
+                    Please select start date & time
+                  </FormText>
+                </FormGroup>
+              </Col>
+              <Col xs="12" sm="12" md="6" lg="4" xl="2">
+                <FormGroup>
+                  <Label className="h6">End: </Label>
+                  <DatetimePickerTrigger
+                    moment={this.state.stopDate}
+                    onChange={this.onStopDateChange}
+                  >
+                    <Input
+                      type="text"
+                      value={this.state.stopDate.format("DD/MM/YYYY  hh:mm A")}
+                      size="10"
+                      placeholder="Normal"
+                      readOnly={true}
+                    />
+                  </DatetimePickerTrigger>
+                  <FormText className="help-block">
+                    Please select end date & time
+                  </FormText>
+                </FormGroup>
+              </Col>
+              <Col xs="12" sm="12" md="6" lg="4" xl="2">
+                <FormGroup>
+                  <Label className="h6">Call Type: </Label>
+                  <Dropdown
+                    isOpen={this.state.callTypeDropdownIsOpen}
+                    toggle={() => {
+                      this.callTypeToggleDropdown();
+                    }}
+                  >
+                    <DropdownToggle caret size="md" className="btn-block">
+                      {this.state.callTypeDropdownValue}
+                    </DropdownToggle>
+                    <DropdownMenu>
+                      <DropdownItem onClick={this.setCallTypeDropdownValue}>
+                        IVR Only
+                      </DropdownItem>
+                      <DropdownItem onClick={this.setCallTypeDropdownValue}>
+                        Normal Call
+                      </DropdownItem>
+                    </DropdownMenu>
+                  </Dropdown>
+                  <FormText className="help-block">
+                    Please select Call Type
+                  </FormText>
+                </FormGroup>
+              </Col>
+              <Col xs="12" sm="12" md="6" lg="3" xl="2">
+                <FormGroup>
+                  <Label className="h6">Final Disposition: </Label>
+                  <MultiSelect
+                    options={this.state.finalDisposition}
+                    value={this.state.selectedFinalDisposition}
+                    onChange={this.onChangeFinalDispositionSelect}
+                    labelledBy={"Select Final Disposition/s"}
+                  />
+                </FormGroup>
+              </Col>
+              <Col xs="12" sm="12" md="6" lg="3" xl="2">
+                <FormGroup>
+                  <Label className="h6">Skill: </Label>
+                  <MultiSelect
+                    options={this.state.skills}
+                    value={this.state.selectedSkills}
+                    onChange={this.onChangeSkillSelect}
+                    labelledBy={"Select Skill/s"}
+                  />
+                </FormGroup>
+              </Col>
+              <Col xs="12" sm="12" md="3" lg="2" xl="1">
+                <FormGroup>
+                  <Spacer height="28px" />
+                  <Button
+                    block
+                    color="success"
+                    className="btn-pill"
+                    onClick={this.toggle}
+                  >
+                    Run!
+                  </Button>
+                  <Modal
+                    isOpen={this.state.modal}
+                    toggle={this.toggleModal}
+                    className={this.props.className}
+                  >
+                    <ModalHeader toggle={this.toggleModal}>Error!</ModalHeader>
+                    <ModalBody>{this.state.modalMessage}</ModalBody>
+                    <ModalFooter>
+                      <Button color="danger" onClick={this.toggleModal}>
+                        Close
+                      </Button>
+                    </ModalFooter>
+                  </Modal>
+                </FormGroup>
+                <FormGroup>{this.state.exportAsCsvLink}</FormGroup>
+              </Col>
+            </FormGroup>
 
-                <Col xs="12" sm="6" md="6" lg="4" xl="2">
-                  <FormGroup>
-                    <Label className="h6">End: </Label>
-                    <DatetimePickerTrigger
-                      moment={this.state.stopDate}
-                      onChange={this.onStopDateChange}
-                    >
-                      <Input
-                        type="text"
-                        value={this.state.stopDate.format(
-                          "DD/MM/YYYY  hh:mm A"
-                        )}
-                        size="10"
-                        placeholder="Normal"
-                        readOnly={true}
-                      />
-                    </DatetimePickerTrigger>
-                    <FormText className="help-block">
-                      Please select end date & time
-                    </FormText>
-                  </FormGroup>
-                </Col>
-                <Col xs="12" sm="6" md="6" lg="3" xl="2">
-                  <FormGroup>
-                    <Label className="h6">Call Type: </Label>
-                    <Dropdown
-                      isOpen={this.state.callTypeDropDownIsOpen}
-                      toggle={() => {
-                        this.callTypeToggleDropDown();
-                      }}
-                    >
-                      <DropdownToggle caret>
-                        {this.state.callTypeDropDownValue}
-                      </DropdownToggle>
-                      <DropdownMenu>
-                        <DropdownItem onClick={this.setCallTypeDropDownValue}>
-                          Type 1
-                        </DropdownItem>
-                        <DropdownItem onClick={this.setCallTypeDropDownValue}>
-                          Type 2
-                        </DropdownItem>
-                      </DropdownMenu>
-                    </Dropdown>
-                    <FormText className="help-block">
-                      Please select Call Type
-                    </FormText>
-                  </FormGroup>
-                </Col>
-                <Col xs="12" sm="6" md="6" lg="3" xl="2">
-                  <FormGroup>
-                    <Label className="h6">Final Dispostion: </Label>
-                    <Dropdown
-                      isOpen={this.state.finalDispositionDropDownIsOpen}
-                      toggle={() => {
-                        this.finalDispositionToggleDropDown();
-                      }}
-                    >
-                      <DropdownToggle caret>
-                        {this.state.finalDispositionDropDownValue}
-                      </DropdownToggle>
-                      <DropdownMenu>
-                        <DropdownItem
-                          onClick={this.setFinalDispositionDropDownValue}
-                        >
-                          Type 1
-                        </DropdownItem>
-                        <DropdownItem
-                          onClick={this.setFinalDispositionDropDownValue}
-                        >
-                          Type 2
-                        </DropdownItem>
-                      </DropdownMenu>
-                    </Dropdown>
-                    <FormText className="help-block">
-                      Please select Final Disposiotion type
-                    </FormText>
-                  </FormGroup>
-                </Col>
-                <Col xs="12" sm="2" md="3" lg="3" xl="2">
-                  <FormGroup>{this.goButtonContent()}</FormGroup>
+            <Collapse
+              isOpen={this.state.collapse}
+              onEntering={this.onEntering}
+              onEntered={this.onEntered}
+              onExiting={this.onExiting}
+              onExited={this.onExited}
+              className="animated fadeIn fadeOut"
+            >
+              <Row>
+                <Col xs="12" sm="12" md="12" lg="12" xl="12">
+                  <BootstrapTable
+                    keyField="callid"
+                    data={this.state.records}
+                    columns={this.state.columns}
+                  />
                 </Col>
               </Row>
-
-              <FormGroup>
-                <Collapse
-                  isOpen={this.state.collapse}
-                  onEntering={this.onEntering}
-                  onEntered={this.onEntered}
-                  onExiting={this.onExiting}
-                  onExited={this.onExited}
-                  className="animated fadeIn fadeOut"
-                >
-                  <FormGroup row>
-                    <Col xs="12" sm="12" md="12" lg="12" xl="12">
-                      <BootstrapTable
-                        striped={false}
-                        bordered={true}
-                        hover={true}
-                        rowStyle={{ backgroundColor: "white" }}
-                        keyField="callID"
-                        data={this.state.products}
-                        columns={this.state.columns}
-                        condensed={true}
-                        expandRow={this.expandRow}
-                      />
-                    </Col>
-                  </FormGroup>
-                </Collapse>
-              </FormGroup>
-            </CardBody>
-          </Card>
-        </Col>
+            </Collapse>
+          </CardBody>
+        </Card>
       </div>
     );
   }

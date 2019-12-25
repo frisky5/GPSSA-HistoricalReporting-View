@@ -13,17 +13,19 @@ import {
   FormText,
   Input,
   Label,
-  Row,
+  Row
 } from "reactstrap";
 import moment from "moment";
 import { DatetimePicker, DatetimePickerTrigger } from "rc-datetime-picker";
+import momentDurationPlugin from "moment-duration-format";
 import "rc-datetime-picker/dist/picker.css";
-
+momentDurationPlugin(moment);
 const override = css`
   display: block;
   margin: 0 auto;
   border-color: red;
 `;
+
 class CallsSummary extends Component {
   constructor(props) {
     super(props);
@@ -34,49 +36,27 @@ class CallsSummary extends Component {
       Entering: "Loading...",
       Entered: "Loaded...",
       Exiting: "Exiting...",
-      Exited: "Exited..."
+      Exited: "Exited...",
+      callsAfterWorkingHours: "",
+      mostFrequentNumber: "",
+      numberOfIvrCalls: "",
+      maxTalkTime: "",
+      numberOfComplainCalls: "",
+      minimumWaitTime: "",
+      minimumTalkTime: "",
+      numberOfAbandonedCalls: "",
+      maximumWaitingTime: "",
+      maximumNumberOfWaitingCalls: "",
+      records: "",
+      totalNumberOfAllCalls: "",
+      totalCallsOfGeneralArabic: "",
+      totalCallsOfGeneralEnglish: "",
+      totalCallsOfComplaintsArabic: "",
+      totalCallsOfComplaintsEnglish: ""
     };
     this.toggle = this.toggle.bind(this);
     this.onStartDateChange = this.onStartDateChange.bind(this);
     this.onStopDateChange = this.onStopDateChange.bind(this);
-  }
-
-  goButtonContent() {
-    if (this.state.collapse == true) {
-      return (
-        <div>
-          <Spacer height="28px" />
-          <Button
-            block
-            color="success"
-            className="btn-pill"
-            onClick={this.toggle}
-          >
-            <DotLoader
-              css={override}
-              sizeUnit={"px"}
-              size={20}
-              color={"#FFFFFF"}
-              loading={this.state.loading}
-            />
-          </Button>
-        </div>
-      );
-    } else {
-      return (
-        <div>
-          <Spacer height="28px" />
-          <Button
-            block
-            color="success"
-            className="btn-pill"
-            onClick={this.toggle}
-          >
-            Go!
-          </Button>
-        </div>
-      );
-    }
   }
 
   onStartDateChange = startDate => {
@@ -90,12 +70,91 @@ class CallsSummary extends Component {
     });
   };
 
-  toggle() {
-    this.setState({
-      collapse: !this.state.collapse
+  getSummaryReport() {
+    const tempstart = this.state.startDate.format("YYYY-MM-DD HH:mm:ss");
+    const tempstop = this.state.stopDate.format("YYYY-MM-DD HH:mm:ss");
+    fetch("http://10.10.60.67/historicalreporting/summaryReport", {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+        "Access-Control-Allow-Origin": "*"
+      },
+      body: JSON.stringify({
+        startDateTime: tempstart,
+        endDateTime: tempstop
+      })
+    }).then(response => {
+      if (response.ok) {
+        response.json().then(json => {
+          this.setState({
+            callsAfterWorkingHours: json.callsAfterWorkingHours
+          });
+          this.setState({
+            mostFrequentNumber: json.mostFrequentNumber
+          });
+          this.setState({
+            numberOfIvrCalls: json.numberOfIvrCalls
+          });
+          this.setState({
+            maxTalkTime: moment
+              .duration(parseInt(json.maxTalkTime), "seconds")
+              .format("hh:mm:ss", { trim: false })
+          });
+          this.setState({
+            numberOfComplainCalls: json.numberOfComplainCalls
+          });
+          this.setState({
+            minimumWaitTime: moment
+              .duration(parseInt(json.minimumWaitTime), "seconds")
+              .format("hh:mm:ss", { trim: false })
+          });
+          this.setState({
+            minimumTalkTime: moment
+              .duration(parseInt(json.minimumTalkTime), "seconds")
+              .format("hh:mm:ss", { trim: false })
+          });
+          this.setState({
+            numberOfAbandonedCalls: json.numberOfAbandonedCalls
+          });
+          this.setState({
+            maximumWaitingTime: moment
+              .duration(parseInt(json.maximumWaitingTime), "seconds")
+              .format("hh:mm:ss", { trim: false })
+          });
+          this.setState({
+            maximumNumberOfWaitingCalls: json.maximumNumberOfWaitingCalls
+          });
+          this.setState({
+            totalNumberOfAllCalls: json.totalNumberOfAllCalls
+          });
+          this.setState({
+            totalCallsOfComplaintsArabic: json.totalCallsOfComplaintsArabic
+          });
+          this.setState({
+            totalCallsOfComplaintsEnglish: json.totalCallsOfComplaintsEnglish
+          });
+          this.setState({
+            totalCallsOfGeneralArabic: json.totalCallsOfGeneralArabic
+          });
+          this.setState({
+            totalCallsOfGeneralEnglish: json.totalCallsOfGeneralEnglish
+          });
+        });
+      }
     });
-    console.log(this.state.collapse);
   }
+  toggle() {
+    if (this.state.collapse == false) {
+      this.getSummaryReport();
+      this.setState({
+        collapse: !this.state.collapse
+      });
+    } else {
+      this.getSummaryReport();
+    }
+  }
+
   onEntering() {}
   onEntered() {}
   onExiting() {}
@@ -151,8 +210,18 @@ class CallsSummary extends Component {
                     </FormText>
                   </FormGroup>
                 </Col>
-                <Col xs="12" sm="2" md="3" lg="2" xl="2">
-                  <FormGroup>{this.goButtonContent()}</FormGroup>
+                <Col xs="12" sm="2" md="3" lg="2" xl="1">
+                  <FormGroup>
+                    <Spacer height="28px" />
+                    <Button
+                      block
+                      color="success"
+                      className="btn-pill"
+                      onClick={this.toggle}
+                    >
+                      Run!
+                    </Button>
+                  </FormGroup>
                 </Col>
               </FormGroup>
 
@@ -169,9 +238,9 @@ class CallsSummary extends Component {
                     <Col xs="12" sm="6" md="5" lg="5" xl="3">
                       <Card className="card-accent-primary">
                         <CardHeader className="h6">
-                          LONGEST TALKING TIME
+                          Longest Talking Time
                         </CardHeader>
-                        <CardBody>TEXT</CardBody>
+                        <CardBody>{this.state.maxTalkTime}</CardBody>
                       </Card>
                     </Col>
                     <Col xs="12" sm="6" md="5" lg="5" xl="3">
@@ -179,23 +248,23 @@ class CallsSummary extends Component {
                         <CardHeader className="h6">
                           Shortest Talking Time
                         </CardHeader>
-                        <CardBody>TEXT</CardBody>
+                        <CardBody>{this.state.minimumTalkTime}</CardBody>
                       </Card>
                     </Col>
                     <Col xs="12" sm="6" md="5" lg="5" xl="3">
                       <Card className="card-accent-primary">
                         <CardHeader className="h6">
-                          Maximum Wait Time
+                          Longest Waiting Time
                         </CardHeader>
-                        <CardBody>TEXT</CardBody>
+                        <CardBody>{this.state.maximumWaitingTime}</CardBody>
                       </Card>
                     </Col>
                     <Col xs="12" sm="6" md="5" lg="5" xl="3">
                       <Card className="card-accent-primary">
                         <CardHeader className="h6">
-                          Shortest Wait Time
+                          Shortest Waiting Time
                         </CardHeader>
-                        <CardBody>TEXT</CardBody>
+                        <CardBody>{this.state.minimumWaitTime}</CardBody>
                       </Card>
                     </Col>
                   </FormGroup>
@@ -205,21 +274,19 @@ class CallsSummary extends Component {
                         <CardHeader className="h6">
                           Most Frequent Number
                         </CardHeader>
-                        <CardBody>TEXT</CardBody>
+                        <CardBody>{this.state.mostFrequentNumber}</CardBody>
                       </Card>
                     </Col>
                     <Col xs="12" sm="6" md="5" lg="5" xl="3">
                       <Card className="card-accent-warning">
-                        <CardHeader className="h6">
-                          #No of Complaint Calls
-                        </CardHeader>
-                        <CardBody>TEXT</CardBody>
+                        <CardHeader className="h6">#No of All Calls</CardHeader>
+                        <CardBody>{this.state.totalNumberOfAllCalls}</CardBody>
                       </Card>
                     </Col>
                     <Col xs="12" sm="6" md="5" lg="5" xl="3">
                       <Card className="card-accent-warning">
                         <CardHeader className="h6">#No of IVR Calls</CardHeader>
-                        <CardBody>TEXT</CardBody>
+                        <CardBody>{this.state.numberOfIvrCalls}</CardBody>
                       </Card>
                     </Col>
                     <Col xs="12" sm="6" md="5" lg="5" xl="3">
@@ -227,7 +294,49 @@ class CallsSummary extends Component {
                         <CardHeader className="h6">
                           #No of Call after 2:30 PM
                         </CardHeader>
-                        <CardBody>TEXT</CardBody>
+                        <CardBody>{this.state.callsAfterWorkingHours}</CardBody>
+                      </Card>
+                    </Col>
+                  </FormGroup>
+                  <FormGroup row>
+                    <Col xs="12" sm="6" md="5" lg="5" xl="3">
+                      <Card className="card-accent-success">
+                        <CardHeader className="h6">
+                          General Arabic Calls
+                        </CardHeader>
+                        <CardBody>
+                          {this.state.totalCallsOfGeneralArabic}
+                        </CardBody>
+                      </Card>
+                    </Col>
+                    <Col xs="12" sm="6" md="12" lg="5" xl="3">
+                      <Card className="card-accent-success">
+                        <CardHeader className="h6">
+                          General English Calls
+                        </CardHeader>
+                        <CardBody>
+                          {this.state.totalCallsOfGeneralEnglish}
+                        </CardBody>
+                      </Card>
+                    </Col>
+                    <Col xs="12" sm="6" md="12" lg="5" xl="3">
+                      <Card className="card-accent-success">
+                        <CardHeader className="h6">
+                          Complaints Arabic Calls
+                        </CardHeader>
+                        <CardBody>
+                          {this.state.totalCallsOfComplaintsArabic}
+                        </CardBody>
+                      </Card>
+                    </Col>
+                    <Col xs="12" sm="6" md="12" lg="5" xl="3">
+                      <Card className="card-accent-success">
+                        <CardHeader className="h6">
+                          Complaints English Calls
+                        </CardHeader>
+                        <CardBody>
+                          {this.state.totalCallsOfComplaintsEnglish}
+                        </CardBody>
                       </Card>
                     </Col>
                   </FormGroup>
@@ -237,23 +346,17 @@ class CallsSummary extends Component {
                         <CardHeader className="h6">
                           #No of Abondened Calls
                         </CardHeader>
-                        <CardBody>TEXT</CardBody>
+                        <CardBody>{this.state.numberOfAbandonedCalls}</CardBody>
                       </Card>
                     </Col>
-                    <Col xs="12" sm="6" md="12" lg="5" xl="4">
-                      <Card className="card-accent-success">
-                        <CardHeader className="h6">
-                          #No of Agent Abondened Calls
-                        </CardHeader>
-                        <CardBody>TEXT</CardBody>
-                      </Card>
-                    </Col>
-                    <Col xs="12" sm="6" md="12" lg="5" xl="4">
+                    <Col xs="12" sm="6" md="12" lg="5" xl="3">
                       <Card className="card-accent-success">
                         <CardHeader className="h6">
                           Maximum Number of Waiting Calls
                         </CardHeader>
-                        <CardBody>TEXT</CardBody>
+                        <CardBody>
+                          {this.state.maximumNumberOfWaitingCalls}
+                        </CardBody>
                       </Card>
                     </Col>
                   </FormGroup>

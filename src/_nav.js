@@ -21,18 +21,18 @@ export default {
       icon: "icon-book-open"
     },
     {
-      name: "Call Detail Report",
+      name: "Calls Detail",
       url: "/historicalReporting/CallsDetailsReport",
       icon: "icon-book-open"
     },
     {
-      name: "Button groups",
-      url: "/buttons/button-groups",
+      name: "Agents Performance",
+      url: "/historicalReporting/AgentsPerformanceReport",
       icon: "icon-book-open"
     },
     {
-      name: "Brand Buttons",
-      url: "/buttons/brand-buttons",
+      name: "Survey Report",
+      url: "/historicalReporting/SurveyReport",
       icon: "icon-book-open"
     }
   ]

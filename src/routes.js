@@ -8,7 +8,16 @@ const CallsDetailReport = React.lazy(() =>
 );
 const LoginPage = React.lazy(() => import("./views/Pages/Login/Login"));
 const HomePage = React.lazy(() => import("./views/Dashboard/Dashboard"));
-
+const AgentsPerformanceReport = React.lazy(() =>
+  import(
+    "./views/HistoricalReporting/AgentsPerformanceReport/AgentsPerformanceReportMain"
+  )
+);
+const SurveyReport = React.lazy(() =>
+  import(
+    "./views/HistoricalReporting/SurveyReport/SurveyReport"
+  )
+);
 const routes = [
   {
     path: "/login",
@@ -16,7 +25,7 @@ const routes = [
     name: "Login Page",
     component: LoginPage
   },
-  { path: "/home", exact: true, name: "Home",component: HomePage },
+  { path: "/home", exact: true, name: "Home", component: HomePage },
   {
     path: "/historicalReporting/callsSummary",
     exact: true,
@@ -28,6 +37,18 @@ const routes = [
     exact: true,
     name: "Calls Details Report",
     component: CallsDetailReport
+  },
+  {
+    path: "/historicalReporting/AgentsPerformanceReport",
+    exact: true,
+    name: "Agents Performance Report",
+    component: AgentsPerformanceReport
+  },
+  {
+    path: "/historicalReporting/SurveyReport",
+    exact: true,
+    name: "Survey Report",
+    component: SurveyReport
   }
 ];
 
