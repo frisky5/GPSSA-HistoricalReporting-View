@@ -68,6 +68,7 @@ class SurveyReport extends Component {
         { label: "CHC", key: "q3" },
         { label: "IVR Satisfaction", key: "q4" },
         { label: "Service Response Time", key: "q5" },
+        { label: "Evluation", key: "evaluation" },
         { label: "Language", key: "language" }
       ],
       exportAsCsvLink: ""
@@ -272,6 +273,13 @@ class SurveyReport extends Component {
             align: "left"
           },
           {
+            dataField: "evaluation",
+            text: "Evaluation",
+            headerAlign: "left",
+            align: "left"
+          },
+          ,
+          {
             dataField: "language",
             text: "Language",
             headerAlign: "left",
@@ -330,6 +338,19 @@ class SurveyReport extends Component {
                 )
                   json[looper].agentID = this.state.agents[innerLooper].label;
               }
+            }
+          } else if (this.state.surveyTypeDropdownValue == "Outbound") {
+            for (var looper = 0; looper < json.length; looper++) {
+              var sum =
+                +json[looper].q1 +
+                +json[looper].q2 +
+                +json[looper].q3 +
+                +json[looper].q4 +
+                +json[looper].q5;
+              json[looper].evaluation = sum / 5;
+              console.log(
+                "JSON [" + looper + "] = " + JSON.stringify(json[looper])
+              );
             }
           }
           for (var looper = 0; looper < json.length; looper++) {
