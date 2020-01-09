@@ -35,7 +35,7 @@ class DefaultLayout extends Component {
   }
 
   render() {
-    console.log("OUTPUT = " + this.props.isLoggedIn);
+    
     return (
       <div className="app">
         <AppHeader fixed>
