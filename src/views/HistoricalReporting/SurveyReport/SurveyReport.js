@@ -348,9 +348,6 @@ class SurveyReport extends Component {
                 +json[looper].q4 +
                 +json[looper].q5;
               json[looper].evaluation = sum / 5;
-              console.log(
-                "JSON [" + looper + "] = " + JSON.stringify(json[looper])
-              );
             }
           }
           for (var looper = 0; looper < json.length; looper++) {

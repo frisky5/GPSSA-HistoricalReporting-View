@@ -18,6 +18,11 @@ const SurveyReport = React.lazy(() =>
     "./views/HistoricalReporting/SurveyReport/SurveyReport"
   )
 );
+const GraphicalPortal = React.lazy(() =>
+  import(
+    "./views/HistoricalReporting/GraphicalPortal/GraphicalPortalMain"
+  )
+);
 const routes = [
   {
     path: "/login",
@@ -49,6 +54,12 @@ const routes = [
     exact: true,
     name: "Survey Report",
     component: SurveyReport
+  },
+  {
+    path: "/historicalReporting/GraphicalPortal",
+    exact: true,
+    name: "Survey Report",
+    component: GraphicalPortal
   }
 ];
 

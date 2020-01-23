@@ -34,6 +34,10 @@ export default {
       name: "Survey Report",
       url: "/historicalReporting/SurveyReport",
       icon: "icon-book-open"
+    },{
+      name: "Graphical Portal",
+      url: "/historicalReporting/GraphicalPortal",
+      icon: "icon-speedometer"
     }
   ]
 };
