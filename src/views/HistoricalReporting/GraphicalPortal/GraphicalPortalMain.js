@@ -37,7 +37,8 @@ class GraphicalPortalMain extends Component {
       stopTime: moment(),
       circularBarChartData: [],
       barChartData: [],
-      getReportsDataRunFlag: false
+      getReportsDataRunFlag: false,
+      selectedReport: ""
     };
     this.setReportTypeDropdownValue = this.setReportTypeDropdownValue.bind(
       this
@@ -49,6 +50,7 @@ class GraphicalPortalMain extends Component {
     this.setStopTime = this.setStopTime.bind(this);
     this.runReports = this.runReports.bind(this);
     this.setReportsDataRunFlag = this.setReportsDataRunFlag.bind(this);
+    this.setSelectedReport = this.setSelectedReport.bind(this);
   }
 
   reportTypeToggleDropdown() {
@@ -68,14 +70,20 @@ class GraphicalPortalMain extends Component {
   runReports() {
     this.setState({ getReportsDataRunFlag: true });
   }
+  setSelectedReport(temp) {
+    this.setState({ selectedReport: temp });
+  }
   setCircularBarChartData(temp) {
     this.setState({ circularBarChartData: temp });
-    this.setState({ runCallsSummaryCircularBarChart: true });
-    this.setState({ runAgentPerformanceBarChart: true });
+    if (this.state.selectedReport == "Summary")
+      this.setState({ runCallsSummaryCircularBarChart: true });
+    else this.setState({ runCallsSummaryCircularBarChart: false });
   }
   setBarChartData(temp) {
     this.setState({ barChartData: temp });
-    this.setState({ runAgentPerformanceBarChart: true });
+    if (this.state.selectedReport == "Agents Performance")
+      this.setState({ runAgentPerformanceBarChart: true });
+    else this.setState({ runAgentPerformanceBarChart: false });
   }
   setReportsDataRunFlag() {
     this.setState({ getReportsDataRunFlag: false });
@@ -94,6 +102,7 @@ class GraphicalPortalMain extends Component {
                   startTime={this.setStartTime}
                   stopTime={this.setStopTime}
                   run={this.runReports}
+                  setSelectedReport={this.setSelectedReport}
                 />
               </Row>
               <Row>
