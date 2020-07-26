@@ -52,7 +52,11 @@ class CallsSummary extends Component {
       totalCallsOfGeneralArabic: "",
       totalCallsOfGeneralEnglish: "",
       totalCallsOfComplaintsArabic: "",
-      totalCallsOfComplaintsEnglish: ""
+      totalCallsOfComplaintsEnglish: "",
+      totalNumberOfPensionerCustomerType:"",
+      totalNumberOfEmployerCustomerType:"",
+      totalNumberOfBeneficiaryCustomerType:"",
+      totalNumberOfInsuredCustomerType:""
     };
     this.toggle = this.toggle.bind(this);
     this.onStartDateChange = this.onStartDateChange.bind(this);
@@ -139,6 +143,19 @@ class CallsSummary extends Component {
           });
           this.setState({
             totalCallsOfGeneralEnglish: json.totalCallsOfGeneralEnglish
+          });
+          /**=========================================================================================*/
+          this.setState({
+            totalNumberOfPensionerCustomerType: json.totalNumberOfPensionerCustomerType
+          });
+          this.setState({
+            totalNumberOfEmployerCustomerType: json.totalNumberOfEmployerCustomerType
+          });
+          this.setState({
+            totalNumberOfBeneficiaryCustomerType: json.totalNumberOfBeneficiaryCustomerType
+          });
+          this.setState({
+            totalNumberOfInsuredCustomerType: json.totalNumberOfInsuredCustomerType
           });
         });
       }
@@ -357,6 +374,40 @@ class CallsSummary extends Component {
                         <CardBody>
                           {this.state.maximumNumberOfWaitingCalls}
                         </CardBody>
+                      </Card>
+                    </Col>
+                  </FormGroup>
+                  <FormGroup row>
+                    <Col xs="12" sm="6" md="5" lg="5" xl="3">
+                      <Card className="card-accent-success">
+                        <CardHeader className="h6">
+                          #No of Insured Customers Calls Type
+                        </CardHeader>
+                        <CardBody>{this.state.totalNumberOfInsuredCustomerType}</CardBody>
+                      </Card>
+                    </Col>
+                    <Col xs="12" sm="6" md="5" lg="5" xl="3">
+                      <Card className="card-accent-success">
+                        <CardHeader className="h6">
+                          #No of Beneficiary Customers Calls Type
+                        </CardHeader>
+                        <CardBody>{this.state.totalNumberOfBeneficiaryCustomerType}</CardBody>
+                      </Card>
+                    </Col>
+                    <Col xs="12" sm="6" md="5" lg="5" xl="3">
+                      <Card className="card-accent-success">
+                        <CardHeader className="h6">
+                          #No of Employer Customers Calls Type
+                        </CardHeader>
+                        <CardBody>{this.state.totalNumberOfEmployerCustomerType}</CardBody>
+                      </Card>
+                    </Col>
+                    <Col xs="12" sm="6" md="5" lg="5" xl="3">
+                      <Card className="card-accent-success">
+                        <CardHeader className="h6">
+                          #No of Pensioner Customers Calls Type
+                        </CardHeader>
+                        <CardBody>{this.state.totalNumberOfPensionerCustomerType}</CardBody>
                       </Card>
                     </Col>
                   </FormGroup>
