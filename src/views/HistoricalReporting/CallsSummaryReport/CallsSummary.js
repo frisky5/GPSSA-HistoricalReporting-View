@@ -297,7 +297,8 @@ class CallsSummary extends Component {
                     <Col xs="12" sm="6" md="5" lg="5" xl="3">
                       <Card className="card-accent-warning">
                         <CardHeader className="h6">#No of All Calls</CardHeader>
-                        <CardBody>{this.state.totalNumberOfAllCalls}</CardBody>
+                        {/* <CardBody>{this.state.totalNumberOfAllCalls}</CardBody> */}
+                        <CardBody>{+this.state.totalCallsOfGeneralArabic + +this.state.totalCallsOfGeneralEnglish + +this.state.totalCallsOfComplaintsArabic + +this.state.totalCallsOfComplaintsEnglish}</CardBody>
                       </Card>
                     </Col>
                     <Col xs="12" sm="6" md="5" lg="5" xl="3">

@@ -85,20 +85,26 @@ class GraphicalReportsDataGetter extends PureComponent {
           });
           temp.push({
             name: "General Arabic Calls",
-            uv: +json.totalCallsOfGeneralArabic,
+            uv: json.totalCallsOfGeneralArabic,
             pv: json.totalNumberOfAllCalls,
             fill: "#f3cd05"
           });
-          temp.push({
-            name: "IVR Calls",
-            uv: json.numberOfIvrCalls,
-            pv: json.totalNumberOfAllCalls,
-            fill: "#0aaff1"
-          });
+          // temp.push({
+          //   name: "IVR Calls",
+          //   uv: json.numberOfIvrCalls,
+          //   pv: json.totalNumberOfAllCalls,
+          //   fill: "#0aaff1"
+          // });
+          // temp.push({
+          //   name: "All Calls",
+          //   uv: json.totalNumberOfAllCalls,
+          //   pv: json.totalNumberOfAllCalls,
+          //   fill: "#36688d"
+          // });
           temp.push({
             name: "All Calls",
-            uv: json.totalNumberOfAllCalls,
-            pv: json.totalNumberOfAllCalls,
+            uv: +json.totalCallsOfGeneralArabic + +json.totalCallsOfGeneralEnglish + +json.totalCallsOfComplaintsEnglish + +json.totalCallsOfComplaintsArabic ,
+            pv:  +json.totalCallsOfGeneralArabic + +json.totalCallsOfGeneralEnglish + +json.totalCallsOfComplaintsEnglish + +json.totalCallsOfComplaintsArabic,
             fill: "#36688d"
           });
           this.props.setCircularBarChartData(temp);
